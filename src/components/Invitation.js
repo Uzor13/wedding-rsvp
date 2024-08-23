@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
+import axios from "axios";
 
 function Invitation() {
     const { uniqueId } = useParams();
@@ -41,18 +42,21 @@ function Invitation() {
             .catch(err => setError(err.message));
     };
 
-    const handleDownload = () => {
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-            const pngUrl = canvas
-                .toDataURL('image/png')
-                .replace('image/png', 'image/octet-stream');
-            let downloadLink = document.createElement('a');
-            downloadLink.href = pngUrl;
-            downloadLink.download = `${guest.name}_wedding_invitation.png`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+    const handleDownloadPDF = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/invitation/${uniqueId}/pdf`, {
+                responseType: 'blob'
+            });
+            const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = `invitation_${guest.name}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) {
+            setError('Failed to download PDF');
         }
     };
 
@@ -79,8 +83,12 @@ function Invitation() {
                 <div className="mt-4">
                     <QRCode value={`http://localhost:3001/rsvp/${uniqueId}`} />
                 </div>
+                <div className="mt-4">
+                    <p>Your unique code is <span className="font-bold">{guest.code}</span>,
+                        which you can also present at the venue to confirm your RSVP.</p>
+                </div>
                 <button
-                    onClick={handleDownload}
+                    onClick={handleDownloadPDF}
                     className="mt-4 bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                 >
                     Download Invitation
