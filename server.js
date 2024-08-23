@@ -41,7 +41,7 @@ app.post('/api/guests', async (req, res) => {
     try {
         const {name, email, phoneNumber} = req.body;
         const uniqueId = generateUniqueId();
-        const uniqueLink = process.env.SERVER_LINK + `/${uniqueId}`;
+        const uniqueLink = process.env.SITE_LINK + `/${uniqueId}`;
         const qrcode = qrCode.toDataURL(uniqueLink);
 
         const guest = new Guest({
