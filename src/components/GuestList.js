@@ -115,6 +115,7 @@ function GuestList() {
                             <table className="min-w-full leading-normal">
                                 <thead>
                                 <tr>
+                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">S/N</th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Name
                                     </th>
@@ -136,10 +137,13 @@ function GuestList() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {guests.map((guest) => {
+                                {guests.map((guest, index) => {
                                     const invitationLink = `${window.location.origin}/rsvp/${guest.uniqueId}`;
                                     return (
                                         <tr key={guest.uniqueId}>
+                                            <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                                <p className="text-gray-900 whitespace-no-wrap">{index + 1}</p>
+                                            </td>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                 <p className="text-gray-900 whitespace-no-wrap">{guest.name}</p>
                                             </td>
