@@ -63,7 +63,8 @@ function GuestList() {
 
     const sendSMS = async (phoneNumber, link) => {
         try {
-            await axios.post('/api/send-sms', {phoneNumber, message: `Here's your wedding invitation link: ${link}`});
+            const serverLink = process.env.REACT_APP_SERVER_LINK;
+            await axios.post(`${serverLink}/api/send-sms`, {phoneNumber, message: `Here's your wedding invitation link: ${link}`});
             alert('SMS sent successfully');
         } catch (error) {
             alert('Failed to send SMS');
@@ -118,9 +119,6 @@ function GuestList() {
                                         Name
                                     </th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Phone Number
                                     </th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -144,9 +142,6 @@ function GuestList() {
                                         <tr key={guest.uniqueId}>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                 <p className="text-gray-900 whitespace-no-wrap">{guest.name}</p>
-                                            </td>
-                                            <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                                <p className="text-gray-900 whitespace-no-wrap">{guest.email}</p>
                                             </td>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                 <p className="text-gray-900 whitespace-no-wrap">{guest.phoneNumber}</p>
