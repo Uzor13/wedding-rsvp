@@ -25,7 +25,7 @@ function AdminLogin() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Admin Login</h2>
+                <h2 className="mt-6 font-sans text-center text-3xl font-extrabold text-gray-900">Admin Login</h2>
             </div>
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10">

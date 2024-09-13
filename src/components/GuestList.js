@@ -98,7 +98,7 @@ function GuestList() {
             </nav>
             <div className="container mx-auto px-4 sm:px-8">
                 <div className="py-8">
-                    <h2 className="text-2xl font-semibold leading-tight">Guest List</h2>
+                    <h2 className="text-2xl font-sans font-semibold leading-tight">Guest List</h2>
                     <div {...getRootProps()}
                          className="dropzone mt-4 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                         <input {...getInputProps()} />
