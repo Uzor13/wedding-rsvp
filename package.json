@@ -24,7 +24,9 @@
     "react-router-dom": "^6.26.1",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.4.10",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "html2pdf.js": "^0.10.2",
+    "lucide-react": "^0.441.0"
   },
   "scripts": {
     "start": "react-scripts start",
