@@ -48,10 +48,10 @@ function Invitation() {
     const handleDownload = () => {
         const element = contentRef.current;
         const opt = {
-            margin: 15,
+            margin: 10,
             filename: 'wedding_invitation.pdf',
             image: {type: 'jpeg', quality: 1},
-            html2canvas: {scale: 2},
+            html2canvas: {scale: 2, useCORS: true},
             jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'}
         };
 
@@ -64,7 +64,7 @@ function Invitation() {
 
     return (
         <div ref={contentRef}
-             className="min-h-screen bg-white flex items-center justify-center p-4 border border-coffee">
+             className="min-h-screen bg-white flex items-center justify-center p-4">
             <div className="bg-white border border-coffee rounded-lg shadow-lg p-8 max-w-md w-full text-center">
                 <h1 className="text-5xl text-coffee mb-6">Wedding Invitation</h1>
 
@@ -87,7 +87,8 @@ function Invitation() {
                 </div>
 
                 <div className="mb-6">
-                    <QRCodeSVG value={`${process.env.REACT_APP_SERVER_LINK}/rsvp/${uniqueId}`} size={200} className="mx-auto"/>
+                    <QRCodeSVG value={`${process.env.REACT_APP_SERVER_LINK}/rsvp/${uniqueId}`} size={200}
+                               className="mx-auto w-full"/>
                 </div>
 
                 <div className="mb-6">
