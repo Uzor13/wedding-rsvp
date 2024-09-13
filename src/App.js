@@ -1,19 +1,38 @@
 import './App.css';
-import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes, Link, Navigate} from 'react-router-dom';
 import Invitation from "./components/Invitation";
 import GuestForm from "./components/GuestForm";
 import GuestList from "./components/GuestList";
 import VerifyGuest from "./components/VerifyGuest";
+import AdminLogin from "./components/AdminLogin";
+
+function PrivateRoute({children}) {
+    const token = localStorage.getItem('adminToken');
+    return token ? children : <Navigate to="/login"/>;
+}
 
 function App() {
     return (
         <Router>
             <div>
                 <Routes>
-                    <Route path="/" element={<GuestForm />} />
-                    <Route path="/guests" element={<GuestList />} />
-                    <Route path="/rsvp/:uniqueId" element={<Invitation />} />
-                    <Route path="/verify" element={<VerifyGuest />} />
+                    <Route path="/login" element={<AdminLogin />} />
+                    <Route path="/" element={
+                        <PrivateRoute>
+                            <GuestForm/>
+                        </PrivateRoute>
+                    }/>
+                    <Route path="/guests" element={
+                        <PrivateRoute>
+                            <GuestList/>
+                        </PrivateRoute>
+                    }/>
+                    <Route path="/rsvp/:uniqueId" element={<Invitation/>}/>
+                    <Route path="/verify" element={
+                        <PrivateRoute>
+                            <VerifyGuest/>
+                        </PrivateRoute>
+                    }/>
                 </Routes>
             </div>
         </Router>

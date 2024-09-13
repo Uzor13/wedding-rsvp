@@ -19,10 +19,15 @@ function VerifyGuest() {
     const verifyCode = async (codeToVerify) => {
         setMessage('');
         try {
-            const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/verify`, {
-                uniqueId: codeToVerify,
-                code: codeToVerify
-            });
+            const token = localStorage.getItem('adminToken');
+            const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/verify-guest`,
+                {
+                    uniqueId: codeToVerify,
+                    code: codeToVerify
+                },
+                {
+                    headers: {Authorization: `Bearer ${token}`},
+                });
             setMessage(`Verification successful. Welcome, ${response.data.guestName}!`);
         } catch (error) {
             setMessage(error.response?.data?.message || 'Verification failed');

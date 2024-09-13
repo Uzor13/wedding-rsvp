@@ -11,21 +11,26 @@ function GuestForm() {
         e.preventDefault();
         setMessage('');
         try {
-            const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/guests`, {
-                name,
-                phoneNumber
-            });
+            const token = localStorage.getItem('adminToken');
+            const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/add-guest`,
+                {
+                    name,
+                    phoneNumber
+                },
+                {
+                    headers: {Authorization: `Bearer ${token}`}
+                });
             setMessage(`Guest added successfully. Unique link: ${response.data.uniqueLink}`);
             setName('');
             setPhoneNumber('');
         } catch (error) {
-            setMessage(`Error: ${error.response?.data?.error || 'Failed to add guest'}`);
+            setMessage(`${error.response?.data?.error || error.response?.data?.message || 'Failed to add guest'}`);
         }
     };
 
     return (
         <>
-            <nav className="bg-gray-800 p-4">
+            <nav className="bg-blue-950 p-4">
                 <ul className="flex space-x-4">
                     <li>
                         <Link to="/" className="text-white hover:text-gray-300">Add Guest</Link>
@@ -76,7 +81,7 @@ function GuestForm() {
                     </div>
                 </form>
                 {message && (
-                    <p className="text-center text-green-500 font-bold">{message}</p>
+                    <p className="text-center text-gray-700 font-bold">{message}</p>
                 )}
             </div>
         </>

@@ -20,7 +20,12 @@ function GuestList() {
     const fetchGuests = async () => {
         try {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
-            const response = await axios.get(`${serverLink}/api/guests`);
+            const token = localStorage.getItem('adminToken');
+            const response = await axios.get(`${serverLink}/api/admin/guests`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setGuests(response.data);
             setLoading(false);
         } catch (err) {
@@ -39,7 +44,7 @@ function GuestList() {
             const csvData = reader.result;
             try {
                 const serverLink = process.env.REACT_APP_SERVER_LINK;
-                const response = await axios.post(`${serverLink}/api/guests/import`, {csvData});
+                const response = await axios.post(`${serverLink}/api/admin/guests/import`, {csvData});
                 setGuests(response.data);
             } catch (error) {
                 setError('Failed to import CSV');

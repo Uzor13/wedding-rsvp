@@ -5,6 +5,15 @@ body {
   box-sizing: border-box;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Great Vibes", cursive;
+}
+
+p, span, ul, button, * {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 500;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
