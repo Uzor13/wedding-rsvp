@@ -87,7 +87,7 @@ function Invitation() {
                 </div>
 
                 <div className="mb-6">
-                    <QRCodeSVG value={`${process.env.REACT_APP_SERVER_LINK}/rsvp/${uniqueId}`} size={200}
+                    <QRCodeSVG value={`${process.env.REACT_SITE_LINK}/confirm-rsvp/${uniqueId}`} size={200}
                                className="mx-auto w-full"/>
                 </div>
 

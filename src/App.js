@@ -34,7 +34,7 @@ function App() {
                             <VerifyGuest/>
                         </PrivateRoute>
                     }/>
-                    <Route path="/confirm-rsvp" element={
+                    <Route path="/confirm-rsvp/:uniqueId" element={
                         <PrivateRoute>
                             <RSVPConfirmation/>
                         </PrivateRoute>
