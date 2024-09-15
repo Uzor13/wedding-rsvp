@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
 import axios from 'axios';
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 function GuestForm() {
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,10 +21,13 @@ function GuestForm() {
                 {
                     headers: {Authorization: `Bearer ${token}`}
                 });
-            setMessage(`Guest added successfully. Unique link: ${response.data.uniqueLink}`);
+            setMessage(`Guest added successfully.`);
             setName('');
             setPhoneNumber('');
         } catch (error) {
+            if (error.response?.status === 401) {
+                navigate('/login');
+            }
             setMessage(`${error.response?.data?.error || error.response?.data?.message || 'Failed to add guest'}`);
         }
     };

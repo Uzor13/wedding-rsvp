@@ -1,21 +1,17 @@
-// VerifyGuest.js
-
 import React, {useState, useRef} from 'react';
 import axios from 'axios';
-import QrReader from '@yudiel/react-qr-scanner';
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 function VerifyGuest() {
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
-    // const [scannerOpen, setScannerOpen] = useState(false);
-    // const qrReaderRef = useRef(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         await verifyCode(code);
     };
 
+    const navigate = useNavigate();
     const verifyCode = async (codeToVerify) => {
         setMessage('');
         try {
@@ -30,22 +26,13 @@ function VerifyGuest() {
                 });
             setMessage(`Verification successful. Welcome, ${response.data.guestName}!`);
         } catch (error) {
+            if (error.response?.status === 401) {
+                navigate('/login');
+            }
             setMessage(error.response?.data?.message || 'Verification failed');
         }
         setCode('');
     };
-
-    // const handleScan = async (data) => {
-    //     if (data) {
-    //         setScannerOpen(false);
-    //         await verifyCode(data);
-    //     }
-    // };
-    //
-    // const handleError = (err) => {
-    //     console.error(err);
-    //     setMessage('QR scan error. Please try again.');
-    // };
 
     return (
         <>
@@ -64,23 +51,6 @@ function VerifyGuest() {
             </nav>
             <div className="max-w-md mx-auto mt-10">
                 <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                    {/*<div className="mb-4">*/}
-                    {/*    <button*/}
-                    {/*        onClick={() => setScannerOpen(!scannerOpen)}*/}
-                    {/*        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4"*/}
-                    {/*    >*/}
-                    {/*        {scannerOpen ? 'Close QR Scanner' : 'Open QR Scanner'}*/}
-                    {/*    </button>*/}
-                    {/*    {scannerOpen && (*/}
-                    {/*        <QrReader*/}
-                    {/*            ref={qrReaderRef}*/}
-                    {/*            delay={300}*/}
-                    {/*            onError={handleError}*/}
-                    {/*            onScan={handleScan}*/}
-                    {/*            style={{ width: '100%' }}*/}
-                    {/*        />*/}
-                    {/*    )}*/}
-                    {/*</div>*/}
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="code">

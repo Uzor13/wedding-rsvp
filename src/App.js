@@ -5,6 +5,7 @@ import GuestForm from "./components/GuestForm";
 import GuestList from "./components/GuestList";
 import VerifyGuest from "./components/VerifyGuest";
 import AdminLogin from "./components/AdminLogin";
+import RSVPConfirmation from "./components/RSVPConfirmation";
 
 function PrivateRoute({children}) {
     const token = localStorage.getItem('adminToken');
@@ -16,7 +17,7 @@ function App() {
         <Router>
             <div>
                 <Routes>
-                    <Route path="/login" element={<AdminLogin />} />
+                    <Route path="/login" element={<AdminLogin/>}/>
                     <Route path="/" element={
                         <PrivateRoute>
                             <GuestForm/>
@@ -33,6 +34,12 @@ function App() {
                             <VerifyGuest/>
                         </PrivateRoute>
                     }/>
+                    <Route path="/confirm-rsvp" element={
+                        <PrivateRoute>
+                            <RSVPConfirmation/>
+                        </PrivateRoute>
+                    }
+                    />
                 </Routes>
             </div>
         </Router>

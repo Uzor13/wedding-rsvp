@@ -1,8 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {Link} from "react-router-dom";
 import {useDropzone} from 'react-dropzone';
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
+import Alert from "./Alert";
 
 
 function GuestList() {
@@ -10,6 +12,12 @@ function GuestList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copySuccess, setCopySuccess] = useState({});
+    const [searchQuery, setSearchQuery] = useState('');
+    const [verificationFilter, setVerificationFilter] = useState('all');
+    const [rsvpFilter, setRsvpFilter] = useState('all');
+    const [alert, setAlert] = useState({ type: '', message: '', visible: false });
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchGuests()
@@ -29,6 +37,9 @@ function GuestList() {
             setGuests(response.data);
             setLoading(false);
         } catch (err) {
+            if (err.response?.status === 401) {
+                navigate('/login');
+            }
             setError('Failed to fetch guests');
             setLoading(false);
         }
@@ -62,7 +73,8 @@ function GuestList() {
     };
 
     const sendWhatsApp = async (phoneNumber, link) => {
-        const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(`Here's your wedding invitation link: ${link}`)}`;
+        const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=
+        ${encodeURIComponent(`Here's your wedding invitation link: ${link}`)}`;
         window.open(whatsappLink, '_blank');
     };
 
@@ -70,11 +82,64 @@ function GuestList() {
         try {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
             await axios.post(`${serverLink}/api/send-sms`, {phoneNumber, message: `Here's your wedding invitation link: ${link}`});
-            alert('SMS sent successfully');
+            setAlert({
+                type: 'success',
+                message: 'SMS sent successfully!',
+                visible: true,
+            });
         } catch (error) {
-            alert('Failed to send SMS');
+            setAlert({
+                type: 'error',
+                message: 'Sorry, SMS was not sent',
+                visible: true,
+            });
         }
     };
+
+    const deleteGuest = async (phoneNumber) => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const serverLink = process.env.REACT_APP_SERVER_LINK;
+            await axios.delete(`${serverLink}/api/admin/delete/${phoneNumber}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setAlert({
+                type: 'success',
+                message: 'Guest deleted successfully!',
+                visible: true,
+            });
+        } catch (error) {
+            setAlert({
+                type: 'error',
+                message: error.response?.data?.message || 'Error deleting guest',
+                visible: true,
+            });
+        }
+    };
+
+    const filteredGuests = guests.filter((guest) => {
+        const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            guest.phoneNumber.includes(searchQuery);
+
+        const matchesVerification =
+            verificationFilter === 'all' ||
+            (verificationFilter === 'verified' && guest.isUsed) ||
+            (verificationFilter === 'pending' && !guest.isUsed);
+
+        const matchesRsvp =
+            rsvpFilter === 'all' ||
+            (rsvpFilter === 'confirmed' && guest.rsvpStatus) ||
+            (rsvpFilter === 'pending' && !guest.rsvpStatus);
+
+        return matchesSearch && matchesVerification && matchesRsvp;
+    });
+
+    const closeAlert = () => {
+        setAlert({ ...alert, visible: false });
+    };
+
 
     const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
 
@@ -108,11 +173,43 @@ function GuestList() {
                                 <p>Drag 'n' drop a CSV file here, or click to select file</p>
                         }
                     </div>
-                    <div className="my-2 flex sm:flex-row flex-col">
-                        <div className="flex flex-row mb-1 sm:mb-0">
-                            <div className="relative">
-                                {/* Add filter options here if needed */}
-                            </div>
+                    <div
+                        className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4 mt-8 mb-6">
+                        {/* Search Input */}
+                        <input
+                            type="text"
+                            placeholder="Search by name or phone number"
+                            className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+
+                        {/* Verification Status Filter */}
+                        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+                            <label className="text-gray-700">Verification Status:</label>
+                            <select
+                                className="px-4 py-2 border border-gray-300 rounded-lg"
+                                value={verificationFilter}
+                                onChange={(e) => setVerificationFilter(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                <option value="verified">Verified</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+
+                        {/* RSVP Status Filter */}
+                        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+                            <label className="text-gray-700">RSVP Status:</label>
+                            <select
+                                className="px-4 py-2 border border-gray-300 rounded-lg"
+                                value={rsvpFilter}
+                                onChange={(e) => setRsvpFilter(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="pending">Pending</option>
+                            </select>
                         </div>
                     </div>
                     <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
@@ -142,7 +239,7 @@ function GuestList() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {guests.map((guest, index) => {
+                                {filteredGuests.map((guest, index) => {
                                     const invitationLink = `${window.location.origin}/rsvp/${guest.uniqueId}`;
                                     return (
                                         <tr key={guest.uniqueId}>
@@ -189,10 +286,23 @@ function GuestList() {
                                                 </button>
                                                 <button
                                                     onClick={() => sendSMS(guest.phoneNumber, invitationLink)}
-                                                    className="text-purple-600 hover:text-purple-900"
+                                                    className="text-purple-600 hover:text-purple-900 mr-2"
                                                 >
                                                     SMS
                                                 </button>
+                                                <button
+                                                    onClick={() => deleteGuest(guest.phoneNumber)}
+                                                    className="text-red-500 hover:text-purple-900"
+                                                >
+                                                    Delete
+                                                </button>
+                                                {alert.visible && (
+                                                    <Alert
+                                                        type={alert.type}
+                                                        message={alert.message}
+                                                        onClose={closeAlert}
+                                                    />
+                                                )}
                                             </td>
                                         </tr>
                                     )
