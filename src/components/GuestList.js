@@ -5,6 +5,7 @@ import {Link} from "react-router-dom";
 import {useDropzone} from 'react-dropzone';
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
 import Alert from "./Alert";
+import AfricasTalking from 'africastalking'
 
 
 function GuestList() {
@@ -15,7 +16,7 @@ function GuestList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [verificationFilter, setVerificationFilter] = useState('all');
     const [rsvpFilter, setRsvpFilter] = useState('all');
-    const [alert, setAlert] = useState({ type: '', message: '', visible: false });
+    const [alert, setAlert] = useState({type: '', message: '', visible: false});
 
     const navigate = useNavigate();
 
@@ -88,20 +89,17 @@ function GuestList() {
 
     const sendSMS = async (phoneNumber, link, guestName) => {
         phoneNumber = formatPhoneNumber(phoneNumber);
-        const generated_id = 'int_' + Date.now().toString().substring(0, 30);
-
-        const data = {
-            username: process.env.REACT_APP_USERNAME, // Accessing Africa's Talking username from .env
-            to: phoneNumber,
-            message: `Dear ${guestName.trim}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}`
-        };
 
         try {
-            const response = await axios.post(`https://api.africastalking.com/version1/messaging`, data,
+            const response = await axios.post(`${process.env.REACT_APP_SITE_LINK}/api/admin/send-sms`,
+                {
+                    guestName,
+                    phoneNumber,
+                    link
+                },
                 {
                     headers: {
-                        'Content-Type': 'application/json',
-                        'apiKey': process.env.REACT_APP_AFRICA_IS_TALKING_API_KEY
+                        'Content-Type': 'application/json'
                     }
                 });
             setAlert({
@@ -160,7 +158,7 @@ function GuestList() {
     });
 
     const closeAlert = () => {
-        setAlert({ ...alert, visible: false });
+        setAlert({...alert, visible: false});
     };
 
 
