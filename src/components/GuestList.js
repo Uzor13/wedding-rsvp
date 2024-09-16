@@ -97,8 +97,7 @@ function GuestList() {
                 },
                 message: {
                     sender: `${process.env.REACT_APP_SMS_SENDER_NAME}`,
-                    messagetext: `Dear ${guestName}, you are cordially invited to our wedding ceremony on the 9th of November, 
-                    please click the link below to confirm rsvp: ${link}`,
+                    messagetext: `Dear ${guestName.trim}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}`,
                     flash: "0"
                 },
                 recipients: {
@@ -113,7 +112,7 @@ function GuestList() {
         };
 
         try {
-            await axios.post(`https://api.ebulksms.com/sendsms.json`, {data});
+            await axios.post(`https://cors-anywhere.herokuapp.com/https://api.ebulksms.com/sendsms.json`, {data});
             setAlert({
                 type: 'success',
                 message: 'SMS sent successfully!',
