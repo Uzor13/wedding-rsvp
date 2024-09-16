@@ -112,7 +112,12 @@ function GuestList() {
         };
 
         try {
-            await axios.post(`https://cors-anywhere.herokuapp.com/https://api.ebulksms.com/sendsms.json`, {data});
+            await axios.post(`https://cors-anywhere.herokuapp.com/https://api.ebulksms.com/sendsms.json`, {data},
+                {
+                    headers: {
+                        "Allow-Origin": "*",
+                    }
+                });
             setAlert({
                 type: 'success',
                 message: 'SMS sent successfully!',
