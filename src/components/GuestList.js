@@ -90,11 +90,11 @@ function GuestList() {
         phoneNumber = formatPhoneNumber(phoneNumber);
 
         try {
-            const response = await axios.post(`${process.env.REACT_APP_SITE_LINK}/api/admin/send-sms`,
+            await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/send-sms`,
                 {
-                    guestName,
-                    phoneNumber,
-                    link
+                    name: guestName,
+                    phoneNumber: phoneNumber,
+                    link: link
                 },
                 {
                     headers: {
@@ -106,7 +106,6 @@ function GuestList() {
                 message: 'SMS sent successfully!',
                 visible: true,
             });
-            console.log(response.data)
         } catch (error) {
             setAlert({
                 type: 'error',
