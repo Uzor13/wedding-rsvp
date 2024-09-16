@@ -88,6 +88,7 @@ function GuestList() {
 
     const sendSMS = async (phoneNumber, link, guestName) => {
         phoneNumber = formatPhoneNumber(phoneNumber);
+        const token = localStorage.getItem('adminToken');
 
         try {
             await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/send-sms`,
@@ -98,6 +99,7 @@ function GuestList() {
                 },
                 {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
