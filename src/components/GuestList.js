@@ -112,7 +112,7 @@ function GuestList() {
         };
 
         try {
-            await axios.post(`https://api.ebulksms.com/sendsms.json`, {data},
+            const response = await axios.post(`https://api.ebulksms.com/sendsms.json`, {data},
                 {
                     headers: {
                         "Access-Control-Allow-Origin": "*",
@@ -123,6 +123,7 @@ function GuestList() {
                 message: 'SMS sent successfully!',
                 visible: true,
             });
+            console.log(response.data)
         } catch (error) {
             setAlert({
                 type: 'error',
