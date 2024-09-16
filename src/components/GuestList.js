@@ -78,12 +78,42 @@ function GuestList() {
         window.open(whatsappLink, '_blank');
     };
 
-    const sendSMS = async (phoneNumber, link, guestName) => {
-        // join number with 234
+    function formatPhoneNumber(phoneNumber) {
+        // Remove spaces and +234 if present
+        let cleanedNumber = phoneNumber.replace(/\s+/g, '').replace(/^\+?234/, '');
 
-        phoneNumber = '234' + phoneNumber;
+        // Add 234 to the beginning
+        return '234' + cleanedNumber;
+    }
+
+    const sendSMS = async (phoneNumber, link, guestName) => {
+        phoneNumber = formatPhoneNumber(phoneNumber);
+        const generated_id = 'int_' + Date.now().toString().substring(0, 30);
+        const data = {
+            SMS: {
+                auth: {
+                    username: `${process.env.REACT_APP_SMS_USERNAME}`,
+                    apikey: `${process.env.REACT_APP_SMS_API_KEY}`,
+                },
+                message: {
+                    sender: `${process.env.REACT_APP_SMS_SENDER_NAME}`,
+                    messagetext: `Dear ${guestName}, you are cordially invited to our wedding ceremony on the 9th of November, 
+                    please click the link below to confirm rsvp: ${link}`,
+                    flash: "0"
+                },
+                recipients: {
+                    gsm: [
+                        {
+                            msidn: `${phoneNumber}`,
+                            msgid: `${generated_id}`
+                        }
+                    ]
+                }
+            }
+        };
+
         try {
-            await axios.get(`https://api.ebulksms.com/sendsms?username=${process.env.REACT_APP_SMS_USERNAME}&apikey=${process.env.REACT_APP_SMS_API_KEY}&sender=ChrisAmaka&messagetext=Dear ${guestName}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}&flash=0/1&recipients=${phoneNumber}`);
+            await axios.post(`https://api.ebulksms.com/sendsms.json`, {data});
             setAlert({
                 type: 'success',
                 message: 'SMS sent successfully!',
