@@ -116,6 +116,7 @@ function GuestList() {
                 {
                     headers: {
                         "Access-Control-Allow-Origin": "*",
+                        "content-type": "application/json"
                     }
                 });
             setAlert({
