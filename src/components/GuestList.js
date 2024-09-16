@@ -5,7 +5,6 @@ import {Link} from "react-router-dom";
 import {useDropzone} from 'react-dropzone';
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
 import Alert from "./Alert";
-import AfricasTalking from 'africastalking'
 
 
 function GuestList() {
