@@ -112,7 +112,7 @@ function GuestList() {
         };
 
         try {
-            await axios.post(`https://cors-anywhere.herokuapp.com/https://api.ebulksms.com/sendsms.json`, {data},
+            await axios.post(`https://api.ebulksms.com/sendsms.json`, {data},
                 {
                     headers: {
                         "Access-Control-Allow-Origin": "*",
