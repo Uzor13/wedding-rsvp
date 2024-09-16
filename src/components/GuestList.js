@@ -115,7 +115,7 @@ function GuestList() {
             const response = await axios.post(`https://api.ebulksms.com/sendsms.json`, {data},
                 {
                     headers: {
-                        "content-type": "application/json"
+                        'Content-Type': 'application/json'
                     }
                 });
             setAlert({
