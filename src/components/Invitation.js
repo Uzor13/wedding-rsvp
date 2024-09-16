@@ -80,10 +80,11 @@ function Invitation() {
                 </p>
 
                 <div className="mb-6 space-y-2 text-coffee-dark">
-                    <p><strong>Venue:</strong> Grand Hotel Ballroom</p>
+                    <p><strong>Venue:</strong> Space and Function Event Center, <br/>City Park,
+                        <br/>Ahmadu Bello Way, Wuse 2, Abuja</p>
                     <p><strong>Date:</strong> November 9, 2024</p>
-                    <p><strong>Time:</strong> 9:00 AM</p>
-                    <p><strong>Color of the Day:</strong> White and Coffee</p>
+                    <p><strong>Time:</strong> 2:00 PM</p>
+                    <p><strong>Color of the Day:</strong> White, Coffee and Beige</p>
                 </div>
 
                 <div className="mb-6">

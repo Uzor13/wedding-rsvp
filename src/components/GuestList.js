@@ -78,10 +78,12 @@ function GuestList() {
         window.open(whatsappLink, '_blank');
     };
 
-    const sendSMS = async (phoneNumber, link) => {
+    const sendSMS = async (phoneNumber, link, guestName) => {
+        // join number with 234
+
+        phoneNumber = '234' + phoneNumber;
         try {
-            const serverLink = process.env.REACT_APP_SERVER_LINK;
-            await axios.post(`${serverLink}/api/send-sms`, {phoneNumber, message: `Here's your wedding invitation link: ${link}`});
+            await axios.get(`https://api.ebulksms.com/sendsms?username=${process.env.REACT_APP_SMS_USERNAME}&apikey=${process.env.REACT_APP_SMS_API_KEY}&sender=ChrisAmaka&messagetext=Dear ${guestName}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}&flash=0/1&recipients=${phoneNumber}`);
             setAlert({
                 type: 'success',
                 message: 'SMS sent successfully!',
@@ -285,7 +287,7 @@ function GuestList() {
                                                     WhatsApp
                                                 </button>
                                                 <button
-                                                    onClick={() => sendSMS(guest.phoneNumber, invitationLink)}
+                                                    onClick={() => sendSMS(guest.phoneNumber, invitationLink, guest.name)}
                                                     className="text-purple-600 hover:text-purple-900 mr-2"
                                                 >
                                                     SMS
