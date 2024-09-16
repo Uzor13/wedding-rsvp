@@ -89,33 +89,19 @@ function GuestList() {
     const sendSMS = async (phoneNumber, link, guestName) => {
         phoneNumber = formatPhoneNumber(phoneNumber);
         const generated_id = 'int_' + Date.now().toString().substring(0, 30);
+
         const data = {
-            SMS: {
-                auth: {
-                    username: `${process.env.REACT_APP_SMS_USERNAME}`,
-                    apikey: `${process.env.REACT_APP_SMS_API_KEY}`,
-                },
-                message: {
-                    sender: `${process.env.REACT_APP_SMS_SENDER_NAME}`,
-                    messagetext: `Dear ${guestName.trim}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}`,
-                    flash: "0"
-                },
-                recipients: {
-                    gsm: [
-                        {
-                            msidn: `${phoneNumber}`,
-                            msgid: `${generated_id}`
-                        }
-                    ]
-                }
-            }
+            username: process.env.REACT_APP_USERNAME, // Accessing Africa's Talking username from .env
+            to: phoneNumber,
+            message: `Dear ${guestName.trim}, you are cordially invited to our wedding ceremony on the 9th of November, please click the link below to confirm rsvp: ${link}`
         };
 
         try {
-            const response = await axios.post(`https://api.ebulksms.com/sendsms.json`, {data},
+            const response = await axios.post(`https://api.africastalking.com/version1/messaging`, data,
                 {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'apiKey': process.env.REACT_APP_AFRICA_IS_TALKING_API_KEY
                     }
                 });
             setAlert({
