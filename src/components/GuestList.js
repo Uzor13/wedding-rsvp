@@ -293,6 +293,12 @@ function GuestList() {
                                                         {copySuccess[guest.uniqueId] ? 'Copied!' : 'Copy Link'}
                                                     </button>
                                                 </CopyToClipboard>
+                                                {/*<button*/}
+                                                {/*    onClick={() => sendWhatsApp(guest.phoneNumber, invitationLink)}*/}
+                                                {/*    className="text-green-600 hover:text-green-900 mr-2"*/}
+                                                {/*>*/}
+                                                {/*    WhatsApp*/}
+                                                {/*</button>*/}
                                                 <button
                                                     onClick={() => sendSMS(guest.phoneNumber, invitationLink, guest.name)}
                                                     className="text-purple-600 hover:text-purple-900 mr-2"

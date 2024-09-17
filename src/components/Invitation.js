@@ -100,7 +100,7 @@ function Invitation() {
                 </div>
 
                 <p className="text-sm text-gray-900 mb-4">
-                    Please present this QR code or PIN at the venue to confirm your attendance. 
+                    Please present this QR code or PIN to verify your invite at the venue.
                 </p>
 
                 <div className="space-y-4">
