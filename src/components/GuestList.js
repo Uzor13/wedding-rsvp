@@ -72,18 +72,12 @@ function GuestList() {
         }, 2000);
     };
 
-    const sendWhatsApp = async (phoneNumber, link) => {
-        const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=
-        ${encodeURIComponent(`Here's your wedding invitation link: ${link}`)}`;
-        window.open(whatsappLink, '_blank');
-    };
-
     function formatPhoneNumber(phoneNumber) {
         // Remove spaces and +234 if present
         let cleanedNumber = phoneNumber.replace(/\s+/g, '').replace(/^\+?234/, '');
 
         // Add 234 to the beginning
-        return '234' + cleanedNumber;
+        return '+234' + cleanedNumber;
     }
 
     const sendSMS = async (phoneNumber, link, guestName) => {
@@ -299,12 +293,6 @@ function GuestList() {
                                                         {copySuccess[guest.uniqueId] ? 'Copied!' : 'Copy Link'}
                                                     </button>
                                                 </CopyToClipboard>
-                                                <button
-                                                    onClick={() => sendWhatsApp(guest.phoneNumber, invitationLink)}
-                                                    className="text-green-600 hover:text-green-900 mr-2"
-                                                >
-                                                    WhatsApp
-                                                </button>
                                                 <button
                                                     onClick={() => sendSMS(guest.phoneNumber, invitationLink, guest.name)}
                                                     className="text-purple-600 hover:text-purple-900 mr-2"
