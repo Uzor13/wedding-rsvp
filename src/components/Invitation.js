@@ -70,7 +70,8 @@ function Invitation() {
 
                 <div className="mb-6 flex items-center justify-center text-coffee">
                     <Heart size={24} className="mr-2 fill-coffee"/>
-                    <span className="text-xl font-semibold">Christopher & Amaka</span>
+                    <span className="text-xl font-semibold">Chris
+                 & Amaka</span>
                     <Heart size={24} className="ml-2 fill-coffee"/>
                 </div>
 
@@ -85,6 +86,7 @@ function Invitation() {
                     <p><strong>Date:</strong> November 9, 2024</p>
                     <p><strong>Time:</strong> 2:00 PM</p>
                     <p><strong>Color of the Day:</strong> White, Coffee and Beige</p>
+                         <p><strong>NB:</strong> This admits only 1(One) person</p>
                 </div>
 
                 <div className="mb-6">
@@ -98,7 +100,7 @@ function Invitation() {
                 </div>
 
                 <p className="text-sm text-gray-900 mb-4">
-                    Please present this QR code or PIN at the venue to confirm your attendance.
+                    Please present this QR code or PIN at the venue to confirm your attendance. 
                 </p>
 
                 <div className="space-y-4">
