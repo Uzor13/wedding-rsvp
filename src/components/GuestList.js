@@ -76,8 +76,11 @@ function GuestList() {
         // Remove spaces and +234 if present
         let cleanedNumber = phoneNumber.replace(/\s+/g, '').replace(/^\+?234/, '');
 
+        // Remove the first 0 if present
+        cleanedNumber = cleanedNumber.replace(/^0/, '');
+
         // Add 234 to the beginning
-        return '+234' + cleanedNumber;
+        return '234' + cleanedNumber;
     }
 
     const sendSMS = async (phoneNumber, link, guestName) => {
