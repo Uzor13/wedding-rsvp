@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import axios from 'axios';
 import {Link, useNavigate} from "react-router-dom";
+import NavBar from "./ui/NavBar";
 
 function GuestForm() {
     const [name, setName] = useState('');
@@ -34,19 +35,7 @@ function GuestForm() {
 
     return (
         <>
-            <nav className="bg-blue-950 p-4">
-                <ul className="flex space-x-4">
-                    <li>
-                        <Link to="/" className="text-white hover:text-gray-300">Add Guest</Link>
-                    </li>
-                    <li>
-                        <Link to="/guests" className="text-white hover:text-gray-300">Guest List</Link>
-                    </li>
-                    <li>
-                        <Link to="/verify" className="text-white hover:text-gray-300">Verify Guest</Link>
-                    </li>
-                </ul>
-            </nav>
+           <NavBar/>
             <div className="max-w-md mx-auto mt-10">
                 <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <div className="mb-4">

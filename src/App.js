@@ -6,6 +6,7 @@ import GuestList from "./components/GuestList";
 import VerifyGuest from "./components/VerifyGuest";
 import AdminLogin from "./components/AdminLogin";
 import RSVPConfirmation from "./components/RSVPConfirmation";
+import TagManagement from "./components/Tag";
 
 function PrivateRoute({children}) {
     const token = localStorage.getItem('adminToken');
@@ -40,6 +41,11 @@ function App() {
                         </PrivateRoute>
                     }
                     />
+                    <Route path="/users/tags" element={
+                        <PrivateRoute>
+                            <TagManagement/>
+                        </PrivateRoute>
+                    }/>
                 </Routes>
             </div>
         </Router>

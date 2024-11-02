@@ -4,7 +4,8 @@ import axios from 'axios';
 import {Link} from "react-router-dom";
 import {useDropzone} from 'react-dropzone';
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
-import Alert from "./Alert";
+import Alert from "./ui/Alert";
+import NavBar from "./ui/NavBar";
 
 
 function GuestList() {
@@ -16,12 +17,17 @@ function GuestList() {
     const [verificationFilter, setVerificationFilter] = useState('all');
     const [rsvpFilter, setRsvpFilter] = useState('all');
     const [alert, setAlert] = useState({type: '', message: '', visible: false});
+    const [selectedTag, setSelectedTag] = useState('all'); // Default to 'all' (no tag filter)
+    const [tags, setTags] = useState([]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchGuests()
             .then(r => console.log("Guests returned"))
+            .catch(e => console.log(e.message));
+        fetchTags()
+            .then(r => console.log("Tags returned"))
             .catch(e => console.log(e.message));
     }, []);
 
@@ -137,6 +143,21 @@ function GuestList() {
         }
     };
 
+    // Function to fetch tags
+    const fetchTags = async () => {
+        setLoading(true)
+        try {
+            const serverLink = process.env.REACT_APP_SERVER_LINK;
+            const {data} = await axios.get(`${serverLink}/api/tags`);
+            setTags(data);
+            console.log(data)
+        } catch (error) {
+           setAlert({type: 'error', message: 'Failed to fetch tags', visible: true, });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const filteredGuests = guests.filter((guest) => {
         const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             guest.phoneNumber.includes(searchQuery);
@@ -151,7 +172,13 @@ function GuestList() {
             (rsvpFilter === 'confirmed' && guest.rsvpStatus) ||
             (rsvpFilter === 'pending' && !guest.rsvpStatus);
 
-        return matchesSearch && matchesVerification && matchesRsvp;
+        const tagUsers = tags.find(tag => tag._id === selectedTag)?.users || [];
+
+        const matchesTag =
+            selectedTag === 'all' ||
+            tagUsers.some(user => user._id === guest._id);
+
+        return matchesSearch && matchesVerification && matchesRsvp && matchesTag;
     });
 
     const closeAlert = () => {
@@ -166,19 +193,7 @@ function GuestList() {
 
     return (
         <>
-            <nav className="bg-gray-800 p-4">
-                <ul className="flex space-x-4">
-                    <li>
-                        <Link to="/" className="text-white hover:text-gray-300">Add Guest</Link>
-                    </li>
-                    <li>
-                        <Link to="/guests" className="text-white hover:text-gray-300">Guest List</Link>
-                    </li>
-                    <li>
-                        <Link to="/verify" className="text-white hover:text-gray-300">Verify Guest</Link>
-                    </li>
-                </ul>
-            </nav>
+            <NavBar/>
             <div className="container mx-auto px-4 sm:px-8">
                 <div className="py-8">
                     <h2 className="text-2xl font-sans font-semibold leading-tight">Guest List</h2>
@@ -227,6 +242,21 @@ function GuestList() {
                                 <option value="all">All</option>
                                 <option value="confirmed">Confirmed</option>
                                 <option value="pending">Pending</option>
+                            </select>
+                        </div>
+
+                        {/* Tag Filter */}
+                        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+                            <label className="text-gray-700">Tags:</label>
+                            <select
+                                className="px-4 py-2 border border-gray-300 rounded-lg"
+                                value={selectedTag}
+                                onChange={(e) => setSelectedTag(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                {tags.map(tag => (
+                                    <option key={tag._id} value={tag._id}>{tag.name}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -296,12 +326,6 @@ function GuestList() {
                                                         {copySuccess[guest.uniqueId] ? 'Copied!' : 'Copy Link'}
                                                     </button>
                                                 </CopyToClipboard>
-                                                {/*<button*/}
-                                                {/*    onClick={() => sendWhatsApp(guest.phoneNumber, invitationLink)}*/}
-                                                {/*    className="text-green-600 hover:text-green-900 mr-2"*/}
-                                                {/*>*/}
-                                                {/*    WhatsApp*/}
-                                                {/*</button>*/}
                                                 <button
                                                     onClick={() => sendSMS(guest.phoneNumber, invitationLink, guest.name)}
                                                     className="text-purple-600 hover:text-purple-900 mr-2"
