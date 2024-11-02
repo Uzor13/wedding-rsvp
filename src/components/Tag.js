@@ -305,7 +305,7 @@ const TagManagement = () => {
                                         <span>{tag.name}</span>
                                         <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-500">
-                      {tag.users?.length || 0} users
+                      {tag.users?.length || 0} guests
                     </span>
                                             <Button
                                                 variant="ghost"
