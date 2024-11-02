@@ -104,7 +104,7 @@ function Invitation() {
                     <p><strong>Time:</strong> 2:00 PM</p>
                     <p><strong>Color of the Day:</strong> White, Coffee and Beige</p>
                     <p><strong>NB:</strong> This admits only 1(One) person</p>
-                    <p><strong>Guest Table Tag:</strong> {tag ? `${tag.name}` : 'No tag assigned to this user'}</p>
+                    <p><strong>Guest Table Tag:</strong> {tag ? `${tag.name}` : 'No tag assigned to this guest'}</p>
                 </div>
 
                 <div className="mb-6">
