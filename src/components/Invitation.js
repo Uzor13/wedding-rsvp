@@ -3,6 +3,7 @@ import {useParams} from 'react-router-dom';
 import {QRCodeSVG} from 'qrcode.react';
 import {CheckCircle, Download, Check, Heart} from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import axios from 'axios';
 
 function Invitation() {
     const {uniqueId} = useParams();
@@ -10,6 +11,8 @@ function Invitation() {
     const [rsvpConfirmed, setRsvpConfirmed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [tag, setTag] = useState(null);
+
 
     useEffect(() => {
         fetch(`${process.env.REACT_APP_SERVER_LINK}/api/guest/${uniqueId}`)
@@ -22,10 +25,24 @@ function Invitation() {
             .then(data => {
                 setGuest(data);
                 setRsvpConfirmed(data.rsvpStatus);
+                fetchUserTag(data._id).then(r => console.log(r));
             })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, [uniqueId]);
+
+
+    const fetchUserTag = async (userId) => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/tags/user/${userId}`);
+            setTag(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching tag for user:', error);
+            setTag(null);
+            setLoading(false);
+        }
+    };
 
     const handleRSVP = () => {
         fetch(`${process.env.REACT_APP_SERVER_LINK}/api/rsvp/${uniqueId}`, {method: 'POST'})
@@ -86,7 +103,8 @@ function Invitation() {
                     <p><strong>Date:</strong> November 9, 2024</p>
                     <p><strong>Time:</strong> 2:00 PM</p>
                     <p><strong>Color of the Day:</strong> White, Coffee and Beige</p>
-                         <p><strong>NB:</strong> This admits only 1(One) person</p>
+                    <p><strong>NB:</strong> This admits only 1(One) person</p>
+                    <p><strong>Guest Table Tag:</strong> {tag ? `${tag.name}` : 'No tag assigned to this user'}</p>
                 </div>
 
                 <div className="mb-6">
