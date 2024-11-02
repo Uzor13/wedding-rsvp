@@ -1,9 +1,9 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
-import {Link} from "react-router-dom";
 import {useDropzone} from 'react-dropzone';
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
+import {ClipboardCopy, Send, Trash, Edit} from 'lucide-react';
 import Alert from "./ui/Alert";
 import NavBar from "./ui/NavBar";
 
@@ -20,6 +20,10 @@ function GuestList() {
     const [selectedTag, setSelectedTag] = useState('all'); // Default to 'all' (no tag filter)
     const [tags, setTags] = useState([]);
     const [userTags, setUserTags] = useState([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);  // Track the selected user for reassignment
+    const [newTagId, setNewTagId] = useState('');            // Track the selected new tag
+    const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
 
@@ -174,11 +178,33 @@ function GuestList() {
                 })
             });
             setUserTags(tagMap);
-            console.log("Tag Map", tagMap)
         } catch (error) {
             setAlert({type: 'error', message: 'Failed to fetch tags', visible: true, });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReassign = async () => {
+        if (!selectedUser || !newTagId) return;
+
+        try {
+            const response = await axios.put(`${process.env.REACT_APP_SERVER_LINK}/api/tags/reassign`, {
+                userId: selectedUser._id,
+                newTagId
+            });
+
+            setMessage(response.data.message || 'User reassigned successfully');
+
+            // Update userTags map to show the new tag on the UI
+            setUserTags((prevTags) => ({
+                ...prevTags,
+                [selectedUser._id]: tags.find(tag => tag._id === newTagId)?.name || "No tag",
+            }));
+
+            setModalOpen(false);  // Close modal
+        } catch (error) {
+            setMessage('Error reassigning user');
         }
     };
 
@@ -207,6 +233,11 @@ function GuestList() {
 
     const closeAlert = () => {
         setAlert({...alert, visible: false});
+    };
+
+    const openReassignModal = (user) => {
+        setSelectedUser(user);
+        setModalOpen(true);
     };
 
 
@@ -350,38 +381,79 @@ function GuestList() {
                         <span className="relative">{guest.rsvpStatus ? 'Confirmed' : 'Pending'}</span>
                       </span>
                                             </td>
-                                            <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm flex space-x-2">
+                                                {/* Copy Link */}
                                                 <CopyToClipboard text={invitationLink}
                                                                  onCopy={() => handleCopy(guest.uniqueId)}>
-                                                    <button className="text-blue-600 hover:text-blue-900 mr-2">
-                                                        {copySuccess[guest.uniqueId] ? 'Copied!' : 'Copy Link'}
+                                                    <button className="text-blue-600 hover:text-blue-900">
+                                                        <ClipboardCopy className="inline h-5 w-5"/>
                                                     </button>
                                                 </CopyToClipboard>
+
+                                                {/* Send SMS */}
                                                 <button
                                                     onClick={() => sendSMS(guest.phoneNumber, invitationLink, guest.name)}
-                                                    className="text-purple-600 hover:text-purple-900 mr-2"
+                                                    className="text-purple-600 hover:text-purple-900"
                                                 >
-                                                    SMS
+                                                    <Send className="inline h-5 w-5"/>
                                                 </button>
+
+                                                {/* Delete Guest */}
                                                 <button
                                                     onClick={() => deleteGuest(guest.phoneNumber)}
-                                                    className="text-red-500 hover:text-purple-900"
+                                                    className="text-red-500 hover:text-red-700"
                                                 >
-                                                    Delete
+                                                    <Trash className="inline h-5 w-5"/>
                                                 </button>
-                                                {alert.visible && (
-                                                    <Alert
-                                                        type={alert.type}
-                                                        message={alert.message}
-                                                        onClose={closeAlert}
-                                                    />
-                                                )}
+
+                                                {/* Reassign Tag */}
+                                                <button
+                                                    onClick={() => openReassignModal(guest)}
+                                                    className="text-green-500 hover:text-green-700"
+                                                >
+                                                    <Edit className="inline h-5 w-5"/>
+                                                </button>
                                             </td>
                                         </tr>
                                     )
                                 })}
                                 </tbody>
                             </table>
+                            {modalOpen && (
+                                <div
+                                    className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                                    <div className="bg-white p-6 rounded-md w-96">
+                                        <p className="text-xl text-center">Reassign Tag for {selectedUser.name}</p>
+                                        <select
+                                            value={newTagId}
+                                            onChange={(e) => setNewTagId(e.target.value)}
+                                            className="border p-2 mt-2 w-full"
+                                        >
+                                            <option value="">Select a new tag</option>
+                                            {tags.map(tag => (
+                                                <option key={tag._id} value={tag._id}>
+                                                    {tag.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="mt-4 flex justify-end space-x-2">
+                                            <button
+                                                onClick={() => setModalOpen(false)}
+                                                className="px-4 py-2 bg-gray-300 rounded"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleReassign}
+                                                className="px-4 py-2 bg-blue-500 text-white rounded"
+                                            >
+                                                Confirm
+                                            </button>
+                                        </div>
+                                        {message && <p className="mt-4 text-green-600 text-center">{message}</p>}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
