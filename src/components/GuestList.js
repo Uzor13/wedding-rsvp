@@ -19,6 +19,7 @@ function GuestList() {
     const [alert, setAlert] = useState({type: '', message: '', visible: false});
     const [selectedTag, setSelectedTag] = useState('all'); // Default to 'all' (no tag filter)
     const [tags, setTags] = useState([]);
+    const [userTags, setUserTags] = useState([]);
 
     const navigate = useNavigate();
 
@@ -28,6 +29,9 @@ function GuestList() {
             .catch(e => console.log(e.message));
         fetchTags()
             .then(r => console.log("Tags returned"))
+            .catch(e => console.log(e.message));
+        fetchTagsMapForUsers()
+            .then(r => console.log("User Tags returned"))
             .catch(e => console.log(e.message));
     }, []);
 
@@ -150,9 +154,29 @@ function GuestList() {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
             const {data} = await axios.get(`${serverLink}/api/tags`);
             setTags(data);
-            console.log(data)
         } catch (error) {
            setAlert({type: 'error', message: 'Failed to fetch tags', visible: true, });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Function to fetch tags for users
+    const fetchTagsMapForUsers = async () => {
+        setLoading(true)
+        try {
+            const serverLink = process.env.REACT_APP_SERVER_LINK;
+            const tagMap = {};
+            const {data} = await axios.get(`${serverLink}/api/tags`);
+            data.forEach((tag) => {
+                tag.users.forEach((user) => {
+                    tagMap[user._id] = tag.name;
+                })
+            });
+            setUserTags(tagMap);
+            console.log("Tag Map", tagMap)
+        } catch (error) {
+            setAlert({type: 'error', message: 'Failed to fetch tags', visible: true, });
         } finally {
             setLoading(false);
         }
@@ -276,6 +300,9 @@ function GuestList() {
                                         Unique Code
                                     </th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Table Tag
+                                    </th>
+                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Guest Verified
                                     </th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -289,6 +316,7 @@ function GuestList() {
                                 <tbody>
                                 {filteredGuests.map((guest, index) => {
                                     const invitationLink = `${window.location.origin}/rsvp/${guest.uniqueId}`;
+                                    const tagName = userTags[guest._id] || "No tag";
                                     return (
                                         <tr key={guest.uniqueId}>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -302,6 +330,9 @@ function GuestList() {
                                             </td>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                 <p className="text-gray-900 whitespace-no-wrap">{guest.code}</p>
+                                            </td>
+                                            <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                                <p className="text-gray-900 whitespace-no-wrap">{tagName}</p>
                                             </td>
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                       <span

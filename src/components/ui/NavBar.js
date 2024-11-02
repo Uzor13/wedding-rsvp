@@ -7,7 +7,7 @@ const NavBar = () => {
         <nav className="bg-gray-800 p-4">
             <ul className="flex space-x-4">
                 <li>
-                    <Link to="/public" className="text-white hover:text-gray-300">Add Guest</Link>
+                    <Link to="/" className="text-white hover:text-gray-300">Add Guest</Link>
                 </li>
                 <li>
                     <Link to="/guests" className="text-white hover:text-gray-300">Guest List</Link>

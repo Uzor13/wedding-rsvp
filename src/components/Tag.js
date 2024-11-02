@@ -25,6 +25,7 @@ const TagManagement = () => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [newTagName, setNewTagName] = useState('');
     const [alert, setAlert] = useState({type: '', message: '', visible: false});
+    const [untaggedUsers, setUntaggedUsers] = useState([]);
     const [isLoading, setIsLoading] = useState({
         tags: false,
         users: false,
@@ -193,6 +194,22 @@ const TagManagement = () => {
         );
     }
 
+    useEffect(() => {
+        filterUntaggedUsers();
+    }, [users, tags]);
+
+    const filterUntaggedUsers = () => {
+        // Get a set of user IDs that are assigned to any tag
+        const taggedUserIds = new Set();
+        tags.forEach(tag => {
+            tag.users?.forEach(user => taggedUserIds.add(user._id));
+        });
+
+        // Filter users to only include those not in the taggedUserIds set
+        const untaggedUsersList = users.filter(user => !taggedUserIds.has(user._id));
+        setUntaggedUsers(untaggedUsersList);
+    };
+
     return (
         <>
             <NavBar/>
@@ -321,7 +338,7 @@ const TagManagement = () => {
                             {selectedTag ? (
                                 <>
                                     <div className="space-y-2 mb-4">
-                                        {getUnassignedUsers().map(user => (
+                                        {untaggedUsers.map(user => (
                                             <div
                                                 key={user._id}
                                                 className={`flex justify-between items-center p-2 rounded-md cursor-pointer ${
