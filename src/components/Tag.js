@@ -205,8 +205,13 @@ const TagManagement = () => {
             tag.users?.forEach(user => taggedUserIds.add(user._id));
         });
 
-        // Filter users to only include those not in the taggedUserIds set
-        const untaggedUsersList = users.filter(user => !taggedUserIds.has(user._id));
+        // Filter users to only include those not in the taggedUserIds set and match search
+        const untaggedUsersList = users.filter(user =>
+            !taggedUserIds.has(user._id) &&
+            (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.phoneNumber.includes(searchQuery))
+        );
+
         setUntaggedUsers(untaggedUsersList);
     };
 
@@ -331,7 +336,10 @@ const TagManagement = () => {
                                     type="text"
                                     placeholder="Search for a guest"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value)
+                                        filterUntaggedUsers();
+                                    }}
                                     className="p-2 border border-gray-300 rounded-md w-full"
                                 />
                             </div>
