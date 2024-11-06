@@ -42,3 +42,15 @@ p, span, ul, button, * {
     --radius: 0.5rem;
   }
 }
+
+.break-before-auto {
+  break-before: auto;
+}
+
+.break-after-avoid {
+  break-after: avoid-page;
+}
+
+.break-before-avoid {
+  break-before: avoid-page;
+}
