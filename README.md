@@ -1,70 +1,48 @@
-# Getting Started with Create React App
+# Wedding RSVP Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React SPA that admins use to manage guests, tags, SMS outreach, QR verification, and live event theming. It consumes the backend API and reads configurable invitation settings from the shared `settings` document.
 
-## Available Scripts
+## Requirements
 
-In the project directory, you can run:
+- Node.js 18+
+- npm
+- Backend API running (see `wedding-rsvp-backend`)
 
-### `npm start`
+## Environment
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Create a `.env` file with:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+REACT_APP_SERVER_LINK=http://localhost:3001
+REACT_APP_SITE_LINK=https://your-backend-host
+REACT_APP_USERNAME=...
+REACT_APP_SMS_SENDER_NAME=...
+REACT_APP_SMS_API_KEY=...
+REACT_APP_SMS_USERNAME=...
+REACT_APP_AFRICA_IS_TALKING_API_KEY=...
+```
 
-### `npm test`
+Only variables prefixed with `REACT_APP_` are exposed to the browser build.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Development
 
-### `npm run build`
+```bash
+npm install
+npm start          # launches CRA dev server on http://localhost:3000
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Login with the seeded credentials (`admin` / `admin1234`).
+- Use the Settings page to update invitation copy, colors, and event details; changes persist in MongoDB and update the invitation/verification UI instantly.
+- `npm run build` produces a production bundle in `build/`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Linting & Testing
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm run lint   # if you add ESLint scripts
+npm test       # CRA test runner
+```
 
-### `npm run eject`
+## Deployment
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Build with `npm run build` and deploy the `build/` directory.
+- Set matching environment variables on the hosting provider (Vercel, Netlify, Render, etc.).
