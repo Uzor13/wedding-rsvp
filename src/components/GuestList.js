@@ -14,7 +14,6 @@ function GuestList() {
     const [guests, setGuests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [copySuccess, setCopySuccess] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
     const [verificationFilter, setVerificationFilter] = useState('all');
     const [rsvpFilter, setRsvpFilter] = useState('all');
@@ -26,6 +25,7 @@ function GuestList() {
     const [selectedUser, setSelectedUser] = useState(null);  // Track the selected user for reassignment
     const [newTagId, setNewTagId] = useState('');            // Track the selected new tag
     const [message, setMessage] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState({open: false, guest: null, loading: false});
 
     const navigate = useNavigate();
     const {token, isAdmin, coupleId} = useAuth();
@@ -109,11 +109,20 @@ function GuestList() {
         reader.readAsText(file);
     }, [currentCoupleId, token, fetchGuests]);
 
-    const handleCopy = (id) => {
-        setCopySuccess({...copySuccess, [id]: true});
-        setTimeout(() => {
-            setCopySuccess({...copySuccess, [id]: false});
-        }, 2000);
+    useEffect(() => {
+        if (!alert.visible) return;
+        const timer = setTimeout(() => {
+            setAlert((prev) => ({...prev, visible: false}));
+        }, 3500);
+        return () => clearTimeout(timer);
+    }, [alert.visible]);
+
+    const handleCopy = () => {
+        setAlert({
+            type: 'success',
+            message: 'Invitation link copied to clipboard.',
+            visible: true,
+        });
     };
 
     function formatPhoneNumber(phoneNumber) {
@@ -166,7 +175,7 @@ function GuestList() {
         }
     };
 
-    const deleteGuest = async (phoneNumber) => {
+    const performDeleteGuest = async (guestToDelete) => {
         try {
             if (!token) return;
             if (isAdmin && !currentCoupleId) {
@@ -178,7 +187,7 @@ function GuestList() {
                 return;
             }
             const serverLink = process.env.REACT_APP_SERVER_LINK;
-            await axios.delete(`${serverLink}/api/admin/delete/${phoneNumber}`, {
+            await axios.delete(`${serverLink}/api/admin/delete/${guestToDelete.phoneNumber}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },
@@ -197,6 +206,21 @@ function GuestList() {
                 visible: true,
             });
         }
+    };
+
+    const confirmDeleteGuest = (guestToDelete) => {
+        setConfirmDelete({open: true, guest: guestToDelete, loading: false});
+    };
+
+    const handleDeleteConfirmed = async () => {
+        if (!confirmDelete.guest) return;
+        setConfirmDelete((prev) => ({...prev, loading: true}));
+        await performDeleteGuest(confirmDelete.guest);
+        setConfirmDelete({open: false, guest: null, loading: false});
+    };
+
+    const handleDeleteCancelled = () => {
+        setConfirmDelete({open: false, guest: null, loading: false});
     };
 
     // Function to fetch tags
@@ -312,7 +336,7 @@ function GuestList() {
     });
 
     const closeAlert = () => {
-        setAlert({...alert, visible: false});
+        setAlert((prev) => ({...prev, visible: false}));
     };
 
     const openReassignModal = (user) => {
@@ -344,6 +368,13 @@ function GuestList() {
     return (
         <>
             <NavBar/>
+            {alert.visible && (
+                <Alert
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={closeAlert}
+                />
+            )}
             <div className="container mx-auto px-4 sm:px-8">
                 <div className="py-8">
                     <h2 className="text-2xl font-sans font-semibold leading-tight">Guest List</h2>
@@ -494,7 +525,7 @@ function GuestList() {
                                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm flex space-x-2">
                                                 {/* Copy Link */}
                                                 <CopyToClipboard text={invitationLink}
-                                                                 onCopy={() => handleCopy(guest.uniqueId)}>
+                                                                 onCopy={handleCopy}>
                                                     <button className="text-blue-600 hover:text-blue-900">
                                                         <ClipboardCopy className="inline h-5 w-5"/>
                                                     </button>
@@ -510,7 +541,7 @@ function GuestList() {
 
                                                 {/* Delete Guest */}
                                                 <button
-                                                    onClick={() => deleteGuest(guest.phoneNumber)}
+                                                    onClick={() => confirmDeleteGuest(guest)}
                                                     className="text-red-500 hover:text-red-700"
                                                 >
                                                     <Trash className="inline h-5 w-5"/>
@@ -561,6 +592,33 @@ function GuestList() {
                                             </button>
                                         </div>
                                         {message && <p className="mt-4 text-green-600 text-center">{message}</p>}
+                                    </div>
+                                </div>
+                            )}
+                            {confirmDelete.open && (
+                                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                                    <div className="bg-white p-6 rounded-md w-96">
+                                        <h2 className="text-xl font-semibold text-center mb-4">Delete Guest</h2>
+                                        <p className="text-center text-gray-700">
+                                            Are you sure you want to delete{' '}
+                                            <span className="font-semibold">{confirmDelete.guest?.name}</span>?
+                                        </p>
+                                        <div className="mt-6 flex justify-end space-x-2">
+                                            <button
+                                                onClick={handleDeleteCancelled}
+                                                className="px-4 py-2 bg-gray-300 rounded"
+                                                disabled={confirmDelete.loading}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleDeleteConfirmed}
+                                                className="px-4 py-2 bg-red-600 text-white rounded"
+                                                disabled={confirmDelete.loading}
+                                            >
+                                                {confirmDelete.loading ? 'Deleting...' : 'Delete'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

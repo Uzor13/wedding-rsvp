@@ -12,7 +12,7 @@ function Invitation() {
     const [rsvpConfirmed, setRsvpConfirmed] = useState(false);
     const [guestLoading, setGuestLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [tag, setTag] = useState(null);
+    const [guestSettings, setGuestSettings] = useState(null);
 
     useEffect(() => {
         const loadGuest = async () => {
@@ -26,10 +26,10 @@ function Invitation() {
                 const data = await response.json();
                 setGuest(data);
                 setRsvpConfirmed(data.rsvpStatus);
-                setTag(data.tags?.[0] || null);
+                setGuestSettings(data.settings || null);
             } catch (err) {
                 setError(err.message);
-                setTag(null);
+                setGuestSettings(null);
             } finally {
                 setGuestLoading(false);
             }
@@ -76,7 +76,7 @@ function Invitation() {
     if (combinedError) return <div className="text-center mt-8 text-red-500">{combinedError}</div>;
     if (!guest) return <div className="text-center mt-8">Guest not found</div>;
 
-    const resolvedSettings = guest?.settings || settings;
+    const resolvedSettings = guestSettings || guest?.settings || settings;
     const theme = resolvedSettings?.theme || {};
     const palette = {
         background: theme.backgroundColor || '#FFFFFF',
@@ -123,7 +123,7 @@ function Invitation() {
                     <p><strong>Time:</strong> {eventTime}</p>
                     <p><strong>Color of the Day:</strong> {colorOfDay}</p>
                     <p><strong>NB:</strong> This admits only 1(One) person</p>
-                    <p><strong>Guest Table Tag:</strong> {tag ? `${tag.name}` : 'No tag assigned to this guest'}</p>
+                    <p><strong>Guest Table Tag:</strong> {(guest.tags || []).length > 0 ? guest.tags.map((t) => t.name).filter(Boolean).join(', ') : 'No tag assigned to this guest'}</p>
                 </div>
 
                 <div className="mb-6">
