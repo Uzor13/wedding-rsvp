@@ -18,6 +18,9 @@ const NavBar = () => {
                 <li>
                     <Link to="/users/tags" className="text-white hover:text-gray-300">Assign Tags</Link>
                 </li>
+                <li>
+                    <Link to="/settings" className="text-white hover:text-gray-300">Settings</Link>
+                </li>
             </ul>
         </nav>
     );

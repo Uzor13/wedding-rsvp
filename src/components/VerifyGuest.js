@@ -1,12 +1,13 @@
-import React, {useState, useRef} from 'react';
+import React, {useState} from 'react';
 import axios from 'axios';
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import NavBar from "./ui/NavBar";
-
+import {useSettings} from "../context/SettingsContext";
 
 function VerifyGuest() {
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
+    const {settings} = useSettings();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -36,38 +37,55 @@ function VerifyGuest() {
         setCode('');
     };
 
+    const theme = settings?.theme || {};
+    const pageStyle = {
+        backgroundColor: theme.qrBackgroundColor || '#F3F4F6',
+        color: theme.qrTextColor || '#111827'
+    };
+    const buttonStyle = {
+        backgroundColor: theme.buttonColor || '#6F4E37',
+        color: theme.buttonTextColor || '#FFFFFF'
+    };
+
     return (
         <>
             <NavBar/>
-            <div className="max-w-md mx-auto mt-10">
-                <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="code">
-                                Enter 4-Digit Code
-                            </label>
-                            <input
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="code"
-                                type="text"
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                type="submit"
-                            >
-                                Verify
-                            </button>
-                        </div>
-                    </form>
+            <div className="min-h-screen" style={pageStyle}>
+                <div className="max-w-md mx-auto pt-24">
+                    <div className="shadow-md rounded px-8 pt-6 pb-8 mb-4"
+                         style={{backgroundColor: '#FFFFFF'}}>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-bold mb-2" htmlFor="code">
+                                    Enter 4-Digit Code
+                                </label>
+                                <input
+                                    className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                                    style={{color: pageStyle.color}}
+                                    id="code"
+                                    type="text"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <button
+                                    className="font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                    type="submit"
+                                    style={buttonStyle}
+                                >
+                                    Verify
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {message && (
+                        <p className="text-center font-bold" style={{color: message.includes('successful') ? '#047857' : '#DC2626'}}>
+                            {message}
+                        </p>
+                    )}
                 </div>
-                {message && (
-                    <p className="text-center text-green-500 font-bold">{message}</p>
-                )}
             </div>
         </>
     );
