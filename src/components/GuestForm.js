@@ -1,66 +1,126 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import NavBar from "./ui/NavBar";
+import {useAuth} from "../context/AuthContext";
+import {useSettings} from "../context/SettingsContext";
 
 function GuestForm() {
+    const {token, isAdmin, coupleId} = useAuth();
+    const {selectedCoupleId, setSelectedCoupleId} = useSettings();
+    const [couples, setCouples] = useState([]);
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        const loadCouples = async () => {
+            if (!isAdmin || !token) return;
+            try {
+                const response = await axios.get(
+                    `${process.env.REACT_APP_SERVER_LINK}/api/admin/couples`,
+                    {headers: {Authorization: `Bearer ${token}`}}
+                );
+                setCouples(response.data);
+                if (!selectedCoupleId && response.data.length > 0) {
+                    setSelectedCoupleId(response.data[0]._id);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        loadCouples();
+    }, [isAdmin, token, selectedCoupleId, setSelectedCoupleId]);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setMessage('');
+
+        const targetCoupleId = isAdmin ? selectedCoupleId : coupleId;
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        if (!targetCoupleId) {
+            setMessage('Select a couple before adding guests.');
+            return;
+        }
+
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/add-guest`,
+            await axios.post(
+                `${process.env.REACT_APP_SERVER_LINK}/api/admin/add-guest`,
                 {
                     name,
-                    phoneNumber
+                    phoneNumber,
+                    coupleId: targetCoupleId
                 },
                 {
                     headers: {Authorization: `Bearer ${token}`}
-                });
-            setMessage(`Guest added successfully.`);
+                }
+            );
+            setMessage('Guest added successfully.');
             setName('');
             setPhoneNumber('');
         } catch (error) {
             if (error.response?.status === 401) {
                 navigate('/login');
+            } else {
+                setMessage(error.response?.data?.message || 'Failed to add guest');
             }
-            setMessage(`${error.response?.data?.error || error.response?.data?.message || 'Failed to add guest'}`);
         }
     };
 
     return (
         <>
-           <NavBar/>
-            <div className="max-w-md mx-auto mt-10">
-                <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                    <div className="mb-4">
+            <NavBar/>
+            <div className="max-w-xl mx-auto mt-10">
+                <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 space-y-4">
+                    {isAdmin && (
+                        <div>
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="couple">
+                                Couple
+                            </label>
+                            <select
+                                id="couple"
+                                value={selectedCoupleId || ''}
+                                onChange={(event) => setSelectedCoupleId(event.target.value)}
+                                className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+                                required
+                            >
+                                <option value="" disabled>Select couple</option>
+                                {couples.map((couple) => (
+                                    <option key={couple._id} value={couple._id}>
+                                        {couple.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    <div>
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
                             Name
                         </label>
                         <input
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(event) => setName(event.target.value)}
                             required
                         />
                     </div>
-                    <div className="mb-6">
+                    <div>
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phoneNumber">
                             Phone Number
                         </label>
                         <input
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
                             id="phoneNumber"
                             type="tel"
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            onChange={(event) => setPhoneNumber(event.target.value)}
                             required
                         />
                     </div>

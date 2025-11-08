@@ -3,11 +3,13 @@ import axios from 'axios';
 import {useNavigate} from "react-router-dom";
 import NavBar from "./ui/NavBar";
 import {useSettings} from "../context/SettingsContext";
+import {useAuth} from "../context/AuthContext";
 
 function VerifyGuest() {
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
-    const {settings} = useSettings();
+    const {settings, selectedCoupleId} = useSettings();
+    const {token, isAdmin, coupleId} = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,12 +20,24 @@ function VerifyGuest() {
     const verifyCode = async (codeToVerify) => {
         setMessage('');
         try {
-            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+            if (isAdmin && !selectedCoupleId) {
+                setMessage('Select a couple before verifying.');
+                return;
+            }
+            const payload = {
+                uniqueId: codeToVerify,
+                code: codeToVerify
+            };
+            const targetCoupleId = isAdmin ? selectedCoupleId : coupleId;
+            if (targetCoupleId) {
+                payload.coupleId = targetCoupleId;
+            }
             const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/verify-guest`,
-                {
-                    uniqueId: codeToVerify,
-                    code: codeToVerify
-                },
+                payload,
                 {
                     headers: {Authorization: `Bearer ${token}`},
                 });

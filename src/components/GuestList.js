@@ -6,6 +6,8 @@ import {CopyToClipboard} from "react-copy-to-clipboard/src";
 import {ClipboardCopy, Send, Trash, Edit} from 'lucide-react';
 import Alert from "./ui/Alert";
 import NavBar from "./ui/NavBar";
+import {useAuth} from "../context/AuthContext";
+import {useSettings} from "../context/SettingsContext";
 
 
 function GuestList() {
@@ -26,27 +28,45 @@ function GuestList() {
     const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
+    const {token, isAdmin, coupleId} = useAuth();
+    const {selectedCoupleId, setSelectedCoupleId} = useSettings();
+    const [couples, setCouples] = useState([]);
+    const currentCoupleId = isAdmin ? selectedCoupleId : coupleId;
 
     useEffect(() => {
-        fetchGuests()
-            .then(r => console.log("Guests returned"))
-            .catch(e => console.log(e.message));
-        fetchTags()
-            .then(r => console.log("Tags returned"))
-            .catch(e => console.log(e.message));
-        fetchTagsMapForUsers()
-            .then(r => console.log("User Tags returned"))
-            .catch(e => console.log(e.message));
-    }, []);
+        const loadCouples = async () => {
+            if (!isAdmin || !token) return;
+            try {
+                const response = await axios.get(
+                    `${process.env.REACT_APP_SERVER_LINK}/api/admin/couples`,
+                    {headers: {Authorization: `Bearer ${token}`}}
+                );
+                setCouples(response.data);
+                if (!selectedCoupleId && response.data.length > 0) {
+                    setSelectedCoupleId(response.data[0]._id);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        loadCouples();
+    }, [isAdmin, token, selectedCoupleId, setSelectedCoupleId]);
 
-    const fetchGuests = async () => {
+    const fetchGuests = useCallback(async () => {
+        if (!token) return;
+        setLoading(true);
+        if (isAdmin && !currentCoupleId) {
+            setGuests([]);
+            setLoading(false);
+            return;
+        }
         try {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
-            const token = localStorage.getItem('adminToken');
             const response = await axios.get(`${serverLink}/api/admin/guests`, {
                 headers: {
                     Authorization: `Bearer ${token}`
-                }
+                },
+                params: isAdmin && currentCoupleId ? {coupleId: currentCoupleId} : {}
             });
             setGuests(response.data);
             setLoading(false);
@@ -57,9 +77,17 @@ function GuestList() {
             setError('Failed to fetch guests');
             setLoading(false);
         }
-    };
+    }, [token, currentCoupleId, isAdmin, navigate]);
 
     const onDrop = useCallback((acceptedFiles) => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        if (isAdmin && !currentCoupleId) {
+            setError('Select a couple before importing guests.');
+            return;
+        }
         const file = acceptedFiles[0];
         const reader = new FileReader();
 
@@ -69,15 +97,17 @@ function GuestList() {
             const csvData = reader.result;
             try {
                 const serverLink = process.env.REACT_APP_SERVER_LINK;
-                const response = await axios.post(`${serverLink}/api/admin/guests/import`, {csvData});
-                setGuests(response.data);
+                await axios.post(`${serverLink}/api/admin/import`, {csvData, coupleId: currentCoupleId}, {
+                    headers: {Authorization: `Bearer ${token}`}
+                });
+                fetchGuests();
             } catch (error) {
                 setError('Failed to import CSV');
             }
         };
 
         reader.readAsText(file);
-    }, []);
+    }, [currentCoupleId, token, fetchGuests]);
 
     const handleCopy = (id) => {
         setCopySuccess({...copySuccess, [id]: true});
@@ -98,15 +128,23 @@ function GuestList() {
     }
 
     const sendSMS = async (phoneNumber, link, guestName) => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) {
+            setAlert({
+                type: 'error',
+                message: 'Select a couple before sending SMS.',
+                visible: true,
+            });
+            return;
+        }
         phoneNumber = formatPhoneNumber(phoneNumber);
-        const token = localStorage.getItem('adminToken');
-
         try {
             await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/send-sms`,
                 {
                     name: guestName,
                     phoneNumber: phoneNumber,
-                    link: link
+                    link: link,
+                    coupleId: currentCoupleId
                 },
                 {
                     headers: {
@@ -130,13 +168,23 @@ function GuestList() {
 
     const deleteGuest = async (phoneNumber) => {
         try {
-            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            if (isAdmin && !currentCoupleId) {
+                setAlert({
+                    type: 'error',
+                    message: 'Select a couple before deleting guests.',
+                    visible: true,
+                });
+                return;
+            }
             const serverLink = process.env.REACT_APP_SERVER_LINK;
             await axios.delete(`${serverLink}/api/admin/delete/${phoneNumber}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
-                }
+                },
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
             });
+            await fetchGuests();
             setAlert({
                 type: 'success',
                 message: 'Guest deleted successfully!',
@@ -152,26 +200,42 @@ function GuestList() {
     };
 
     // Function to fetch tags
-    const fetchTags = async () => {
-        setLoading(true)
+    const fetchTags = useCallback(async () => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) {
+            setTags([]);
+            return;
+        }
+        setLoading(true);
         try {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
-            const {data} = await axios.get(`${serverLink}/api/tags`);
+            const {data} = await axios.get(`${serverLink}/api/tags`, {
+                headers: {Authorization: `Bearer ${token}`},
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
+            });
             setTags(data);
         } catch (error) {
            setAlert({type: 'error', message: 'Failed to fetch tags', visible: true, });
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, isAdmin, currentCoupleId]);
 
     // Function to fetch tags for users
-    const fetchTagsMapForUsers = async () => {
-        setLoading(true)
+    const fetchTagsMapForUsers = useCallback(async () => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) {
+            setUserTags({});
+            return;
+        }
+        setLoading(true);
         try {
             const serverLink = process.env.REACT_APP_SERVER_LINK;
             const tagMap = {};
-            const {data} = await axios.get(`${serverLink}/api/tags`);
+            const {data} = await axios.get(`${serverLink}/api/tags`, {
+                headers: {Authorization: `Bearer ${token}`},
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
+            });
             data.forEach((tag) => {
                 tag.users.forEach((user) => {
                     tagMap[user._id] = tag.name;
@@ -183,15 +247,19 @@ function GuestList() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, isAdmin, currentCoupleId]);
 
     const handleReassign = async () => {
         if (!selectedUser || !newTagId) return;
 
         try {
+            if (!token) return;
             const response = await axios.put(`${process.env.REACT_APP_SERVER_LINK}/api/tags/reassign`, {
                 userId: selectedUser._id,
-                newTagId
+                newTagId,
+                coupleId: currentCoupleId
+            }, {
+                headers: {Authorization: `Bearer ${token}`}
             });
 
             setMessage(response.data.message || 'User reassigned successfully');
@@ -204,9 +272,21 @@ function GuestList() {
 
             setModalOpen(false);  // Close modal
         } catch (error) {
+            if (error.response?.status === 401) {
+                navigate('/login');
+                return;
+            }
             setMessage('Error reassigning user');
         }
     };
+
+    useEffect(() => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) return;
+        fetchGuests();
+        fetchTags();
+        fetchTagsMapForUsers();
+    }, [fetchGuests, fetchTags, fetchTagsMapForUsers, currentCoupleId, token, isAdmin]);
 
     const filteredGuests = guests.filter((guest) => {
         const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -244,6 +324,21 @@ function GuestList() {
     const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
 
     if (loading) return <div className="text-center mt-8">Loading...</div>;
+    if (isAdmin && couples.length === 0) {
+        return (
+            <>
+                <NavBar/>
+                <div className="container mx-auto px-4 sm:px-8">
+                    <div className="py-16 text-center">
+                        <h2 className="text-2xl font-semibold mb-2">No couples found</h2>
+                        <p className="text-gray-600">
+                            Create a couple first from the Couples page to start managing guests.
+                        </p>
+                    </div>
+                </div>
+            </>
+        );
+    }
     if (error) return <div className="text-center mt-8 text-red-500">{error}</div>;
 
     return (
@@ -252,6 +347,21 @@ function GuestList() {
             <div className="container mx-auto px-4 sm:px-8">
                 <div className="py-8">
                     <h2 className="text-2xl font-sans font-semibold leading-tight">Guest List</h2>
+                    {isAdmin && (
+                        <div className="mt-4 max-w-xs">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Couple</label>
+                            <select
+                                value={selectedCoupleId || ''}
+                                onChange={(e) => setSelectedCoupleId(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded"
+                            >
+                                <option value="" disabled>Select couple</option>
+                                {couples.map((couple) => (
+                                    <option key={couple._id} value={couple._id}>{couple.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div {...getRootProps()}
                          className="dropzone mt-4 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                         <input {...getInputProps()} />

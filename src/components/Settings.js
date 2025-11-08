@@ -3,6 +3,7 @@ import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
 import NavBar from './ui/NavBar';
 import {useSettings} from '../context/SettingsContext';
+import {useAuth} from '../context/AuthContext';
 
 const defaultSettings = {
     eventTitle: 'Wedding Invitation',
@@ -27,7 +28,9 @@ const defaultSettings = {
 
 const Settings = () => {
     const navigate = useNavigate();
-    const {settings, refreshSettings} = useSettings();
+    const {settings, refreshSettings, selectedCoupleId, setSelectedCoupleId} = useSettings();
+    const {token, isAdmin, coupleId} = useAuth();
+    const [couples, setCouples] = useState([]);
     const [formState, setFormState] = useState(() => ({
         ...defaultSettings,
         theme: {...defaultSettings.theme}
@@ -37,6 +40,24 @@ const Settings = () => {
     const mergedTheme = useMemo(() => {
         return {...defaultSettings.theme, ...(settings?.theme || {})};
     }, [settings]);
+
+    useEffect(() => {
+        const loadCouples = async () => {
+            if (!isAdmin || !token) return;
+            try {
+                const {data} = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/admin/couples`, {
+                    headers: {Authorization: `Bearer ${token}`}
+                });
+                setCouples(data);
+                if (!selectedCoupleId && data.length > 0) {
+                    setSelectedCoupleId(data[0]._id);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadCouples();
+    }, [isAdmin, token, selectedCoupleId, setSelectedCoupleId]);
 
     useEffect(() => {
         if (settings) {
@@ -76,19 +97,19 @@ const Settings = () => {
         event.preventDefault();
         setStatus({type: 'loading'});
         try {
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
+            const targetCoupleId = isAdmin ? selectedCoupleId : coupleId;
+            if (!token || (isAdmin && !targetCoupleId)) {
                 navigate('/login');
                 return;
             }
 
             await axios.put(
                 `${process.env.REACT_APP_SERVER_LINK}/api/settings`,
-                formState,
+                {...formState, coupleId: targetCoupleId},
                 {headers: {Authorization: `Bearer ${token}`}}
             );
 
-            await refreshSettings();
+            await refreshSettings({coupleId: targetCoupleId});
             setStatus({type: 'success', message: 'Settings updated successfully'});
         } catch (error) {
             if (error.response?.status === 401) {
@@ -105,6 +126,21 @@ const Settings = () => {
         <>
             <NavBar/>
             <div className="max-w-4xl mx-auto mt-10 pb-10">
+                {isAdmin && (
+                    <div className="mb-6 max-w-xs">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Couple</label>
+                        <select
+                            value={selectedCoupleId || ''}
+                            onChange={(e) => setSelectedCoupleId(e.target.value)}
+                            className="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+                            <option value="" disabled>Select couple</option>
+                            {couples.map((couple) => (
+                                <option key={couple._id} value={couple._id}>{couple.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 <h1 className="text-3xl font-semibold mb-6">Event Settings</h1>
                 <form onSubmit={handleSubmit} className="space-y-10">
                     <section className="bg-white shadow rounded p-6 space-y-4">

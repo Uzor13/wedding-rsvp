@@ -3,19 +3,27 @@ import {useParams} from 'react-router-dom';
 import axios from 'axios';
 import {CheckCircle, CircleX} from 'lucide-react';
 import {useSettings} from '../context/SettingsContext';
+import {useAuth} from '../context/AuthContext';
 
 const RSVPConfirmation = () => {
     const {uniqueId} = useParams();
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
-    const {settings} = useSettings();
+    const {settings, selectedCoupleId} = useSettings();
+    const {token, isAdmin, coupleId} = useAuth();
 
     useEffect(() => {
         const confirmRSVP = async () => {
             try {
-                const token = localStorage.getItem('adminToken');
+                if (!token) return;
+                if (isAdmin && !selectedCoupleId) return;
+                const payload = {};
+                const targetCoupleId = isAdmin ? selectedCoupleId : coupleId;
+                if (targetCoupleId) {
+                    payload.coupleId = targetCoupleId;
+                }
                 const response = await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/admin/confirm-rsvp/${uniqueId}`,
-                    {}, {headers: {Authorization: `Bearer ${token}`}});
+                    payload, {headers: {Authorization: `Bearer ${token}`}});
                 setMessage(response.data.message);
             } catch (err) {
                 setError(err.response?.data?.message || 'Verification failed');
@@ -23,7 +31,7 @@ const RSVPConfirmation = () => {
         };
 
         confirmRSVP();
-    }, [uniqueId]);
+    }, [uniqueId, token, selectedCoupleId, isAdmin, coupleId]);
 
     const theme = settings?.theme || {};
     const pageStyle = {

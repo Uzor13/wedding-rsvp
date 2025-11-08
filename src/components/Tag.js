@@ -17,6 +17,8 @@ import {
 } from "./ui/AlertParts";
 import AlertDescription from "./ui/AlertDescription";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../context/AuthContext";
+import {useSettings} from "../context/SettingsContext";
 
 const TagManagement = () => {
     const [tags, setTags] = useState([]);
@@ -34,6 +36,10 @@ const TagManagement = () => {
         assign: false
     });
     const [searchQuery, setSearchQuery] = useState('');
+    const {token, isAdmin, coupleId} = useAuth();
+    const {selectedCoupleId, setSelectedCoupleId} = useSettings();
+    const [couples, setCouples] = useState([]);
+    const currentCoupleId = isAdmin ? selectedCoupleId : coupleId;
 
     // Confirmation dialog state
     const [deleteConfirmation, setDeleteConfirmation] = useState({
@@ -45,17 +51,30 @@ const TagManagement = () => {
     const navigate = useNavigate();
 
 
-    const api = axios.create({
-        baseURL: `${process.env.REACT_APP_SERVER_LINK}/api`
-    });
-
-    const token = localStorage.getItem('adminToken');
-
-    // Fetch tags and users on component mount
     useEffect(() => {
-        fetchTags().then(r => console.log(r)).catch(e => console.log(e));
-        fetchUsers().then(r => console.log(r)).catch(e => console.log(e));
-    }, []);
+        const loadCouples = async () => {
+            if (!isAdmin || !token) return;
+            try {
+                const {data} = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/admin/couples`, {
+                    headers: {Authorization: `Bearer ${token}`}
+                });
+                setCouples(data);
+                if (!selectedCoupleId && data.length > 0) {
+                    setSelectedCoupleId(data[0]._id);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadCouples();
+    }, [isAdmin, token, selectedCoupleId, setSelectedCoupleId]);
+
+    useEffect(() => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) return;
+        fetchTags();
+        fetchUsers();
+    }, [token, currentCoupleId, isAdmin]);
 
     const showAlert = (type, message) => {
         setAlert({type, message, visible: true});
@@ -66,9 +85,17 @@ const TagManagement = () => {
 
     // Function to fetch tags
     const fetchTags = async () => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) {
+            setTags([]);
+            return;
+        }
         setIsLoading(prev => ({...prev, tags: true}));
         try {
-            const {data} = await api.get('/tags');
+            const {data} = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/tags`, {
+                headers: {Authorization: `Bearer ${token}`},
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
+            });
             setTags(data);
         } catch (error) {
             showAlert('error', error.response?.data?.message || 'Error fetching tags');
@@ -79,12 +106,16 @@ const TagManagement = () => {
 
     // Function to fetch users
     const fetchUsers = async () => {
+        if (!token) return;
+        if (isAdmin && !currentCoupleId) {
+            setUsers([]);
+            return;
+        }
         setIsLoading(prev => ({...prev, users: true}));
         try {
-            const {data} = await api.get('/admin/guests', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const {data} = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/admin/guests`, {
+                headers: {Authorization: `Bearer ${token}`},
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
             });
             setUsers(data);
             console.log(data);
@@ -112,7 +143,12 @@ const TagManagement = () => {
         setIsLoading(prev => ({...prev, create: true}));
 
         try {
-            await api.post('/tags', {name: newTagName});
+            await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/tags`, {
+                name: newTagName,
+                coupleId: currentCoupleId
+            }, {
+                headers: {Authorization: `Bearer ${token}`}
+            });
             await fetchTags();
             setNewTagName('');
             setAlert({
@@ -136,8 +172,11 @@ const TagManagement = () => {
 
         setIsLoading(prev => ({...prev, assign: true}));
         try {
-            await api.post(`/tags/${selectedTag._id}/users`, {
-                userIds: selectedUsers
+            await axios.post(`${process.env.REACT_APP_SERVER_LINK}/api/tags/${selectedTag._id}/users`, {
+                userIds: selectedUsers,
+                coupleId: currentCoupleId
+            }, {
+                headers: {Authorization: `Bearer ${token}`}
             });
             await fetchTags();
             setSelectedUsers([]);
@@ -154,7 +193,10 @@ const TagManagement = () => {
     const handleDeleteTag = async (tagId) => {
         setIsLoading(prev => ({...prev, delete: true}));
         try {
-            await api.delete(`/tags/${tagId}`);
+            await axios.delete(`${process.env.REACT_APP_SERVER_LINK}/api/tags/${tagId}`, {
+                headers: {Authorization: `Bearer ${token}`},
+                params: isAdmin ? {coupleId: currentCoupleId} : {}
+            });
             await fetchTags();
             if (selectedTag?._id === tagId) {
                 setSelectedTag(null);
@@ -219,6 +261,21 @@ const TagManagement = () => {
         <>
             <NavBar/>
             <div className="flex flex-col space-y-4 p-4">
+                {isAdmin && (
+                    <div className="max-w-xs">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Couple</label>
+                        <select
+                            value={selectedCoupleId || ''}
+                            onChange={(e) => setSelectedCoupleId(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded"
+                        >
+                            <option value="" disabled>Select couple</option>
+                            {couples.map((couple) => (
+                                <option key={couple._id} value={couple._id}>{couple.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 {/* Alert Component */}
                 {alert.visible && (
                     <Alert className={`${

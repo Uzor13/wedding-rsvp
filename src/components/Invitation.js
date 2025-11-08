@@ -3,7 +3,6 @@ import {useParams} from 'react-router-dom';
 import {QRCodeSVG} from 'qrcode.react';
 import {CheckCircle, Download, Check, Heart} from 'lucide-react';
 import html2pdf from 'html2pdf.js';
-import axios from 'axios';
 import {useSettings} from '../context/SettingsContext';
 
 function Invitation() {
@@ -27,11 +26,7 @@ function Invitation() {
                 const data = await response.json();
                 setGuest(data);
                 setRsvpConfirmed(data.rsvpStatus);
-                try {
-                    await fetchUserTag(data._id);
-                } catch (tagError) {
-                    setTag(null);
-                }
+                setTag(data.tags?.[0] || null);
             } catch (err) {
                 setError(err.message);
                 setTag(null);
@@ -42,11 +37,6 @@ function Invitation() {
 
         loadGuest();
     }, [uniqueId]);
-
-    const fetchUserTag = async (userId) => {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_LINK}/api/tags/user/${userId}`);
-        setTag(response.data);
-    };
 
     const handleRSVP = () => {
         fetch(`${process.env.REACT_APP_SERVER_LINK}/api/rsvp/${uniqueId}`, {method: 'POST'})
@@ -86,7 +76,8 @@ function Invitation() {
     if (combinedError) return <div className="text-center mt-8 text-red-500">{combinedError}</div>;
     if (!guest) return <div className="text-center mt-8">Guest not found</div>;
 
-    const theme = settings?.theme || {};
+    const resolvedSettings = guest?.settings || settings;
+    const theme = resolvedSettings?.theme || {};
     const palette = {
         background: theme.backgroundColor || '#FFFFFF',
         text: theme.textColor || '#3D2B1F',
@@ -97,13 +88,13 @@ function Invitation() {
         buttonText: theme.buttonTextColor || '#FFFFFF'
     };
 
-    const eventTitle = settings?.eventTitle || 'Wedding Invitation';
-    const coupleNames = settings?.coupleNames || 'Chris & Amaka';
-    const eventDate = settings?.eventDate || 'November 9, 2024';
-    const eventTime = settings?.eventTime || '2:00 PM';
-    const venueName = settings?.venueName || 'Space and Function Event Center';
-    const venueAddress = settings?.venueAddress || 'City Park, Ahmadu Bello Way, Wuse 2, Abuja';
-    const colorOfDay = settings?.colorOfDay || 'White, Coffee and Beige';
+    const eventTitle = resolvedSettings?.eventTitle || 'Wedding Invitation';
+    const coupleNames = resolvedSettings?.coupleNames || 'Chris & Amaka';
+    const eventDate = resolvedSettings?.eventDate || 'November 9, 2024';
+    const eventTime = resolvedSettings?.eventTime || '2:00 PM';
+    const venueName = resolvedSettings?.venueName || 'Space and Function Event Center';
+    const venueAddress = resolvedSettings?.venueAddress || 'City Park, Ahmadu Bello Way, Wuse 2, Abuja';
+    const colorOfDay = resolvedSettings?.colorOfDay || 'White, Coffee and Beige';
 
     return (
         <div ref={contentRef}
