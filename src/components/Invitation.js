@@ -89,6 +89,7 @@ function Invitation() {
     };
 
     const eventTitle = resolvedSettings?.eventTitle || 'Wedding Invitation';
+    const titleFontFamily = resolvedSettings?.titleFontFamily || '"Helvetica Neue", Arial, sans-serif';
     const coupleNames = resolvedSettings?.coupleNames || 'Chris & Amaka';
     const eventDate = resolvedSettings?.eventDate || 'November 9, 2024';
     const eventTime = resolvedSettings?.eventTime || '2:00 PM';
@@ -104,7 +105,12 @@ function Invitation() {
                 className="rounded-lg shadow-lg p-8 max-w-md w-full text-center"
                 style={{backgroundColor: '#FFFFFF', border: `2px solid ${palette.primary}`}}
             >
-                <h1 className="text-5xl mb-6" style={{color: palette.primary}}>{eventTitle}</h1>
+                <h1
+                    className="text-4xl font-medium tracking-tight mb-6"
+                    style={{color: palette.primary, fontFamily: titleFontFamily}}
+                >
+                    {eventTitle}
+                </h1>
 
                 <div className="mb-6 flex items-center justify-center" style={{color: palette.primary}}>
                     <Heart size={24} className="mr-2" color={palette.primary} fill={palette.primary}/>

@@ -7,6 +7,7 @@ import {useAuth} from '../context/AuthContext';
 
 const defaultSettings = {
     eventTitle: 'Wedding Invitation',
+    titleFontFamily: '"Helvetica Neue", Arial, sans-serif',
     coupleNames: 'Chris & Amaka',
     eventDate: 'November 9, 2024',
     eventTime: '2:00 PM',
@@ -63,6 +64,7 @@ const Settings = () => {
         if (settings) {
             setFormState({
                 eventTitle: settings.eventTitle || defaultSettings.eventTitle,
+                titleFontFamily: settings.titleFontFamily || defaultSettings.titleFontFamily,
                 coupleNames: settings.coupleNames || defaultSettings.coupleNames,
                 eventDate: settings.eventDate || defaultSettings.eventDate,
                 eventTime: settings.eventTime || defaultSettings.eventTime,
@@ -152,6 +154,16 @@ const Settings = () => {
                                     type="text"
                                     value={formState.eventTitle}
                                     onChange={handleChange('eventTitle')}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Title Font Family</label>
+                                <input
+                                    type="text"
+                                    value={formState.titleFontFamily}
+                                    onChange={handleChange('titleFontFamily')}
+                                    placeholder='"Helvetica Neue", Arial, sans-serif'
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 />
                             </div>
